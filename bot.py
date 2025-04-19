@@ -9,9 +9,8 @@ api_hash = '183e1501a9aea045d8d30a341718ce2f'
 session_name = 'userbot'
 
 # OpenAI API Key
-import os
+openai.api_key = "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"
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 client = TelegramClient(session_name, api_id, api_hash)
 
