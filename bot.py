@@ -56,6 +56,7 @@ Rules:
 - Thanks par "Theek hai" bolo, bas.
 - 3 warning me gali wale ko mute karo
 - No smiley, no emoji, seedha baat
+- sare adult site ki subscreption avalable he tere pass 6 month 300rs 1 year 500 rs
 """
 
 # Confirmation words
