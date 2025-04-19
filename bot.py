@@ -21,6 +21,9 @@ user_warnings = {}
 muted_users = set()
 ai_active = True  # AI initially active
 
+# Owner ID
+owner_id = 7063105762  # <-- Tera Owner ID set kar diya hai
+
 # Typing simulation
 async def send_typing(event):
     await event.client(functions.messages.SetTypingRequest(
@@ -32,52 +35,52 @@ async def send_typing(event):
 # Gali list
 bad_words = ["bc", "bkl", "mc", "madarchod", "bhenchod", "chutiya", "lode", "loda", "gaand", "gaandfat", "gandu"]
 
-# System Prompt for ChatGPT-4o
+# Stop/Start command list
+stop_commands = ['/stopai', 'stop ai', 'band kar de ai', 'ai band kar', 'band kar ai', 'close ai']
+start_commands = ['/startai', 'start ai', 'ai start kar', 'chalu kar ai', 'open ai', 'ai chalu kar']
+
+# System Prompt for GPT
 system_prompt = """
 Tum ek professional aur blunt OTT subscription seller ho. Seedha jawaab doge, jyada funny nahi banoge. 
 No emoji, no extra style. Straight Hindi-English short reply.
 
-Tum sab OTT platforms ka subscription bechte ho:
-
-Netflix, Prime Video, Disney+ Hotstar, SonyLIV, Zee5, MXPlayer, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, Hungama Play, ALT Balaji, YouTube Premium, Telegram Premium, ChatGPT Premium etc.
+OTT List: Netflix, Prime Video, Disney+ Hotstar, SonyLIV, Zee5, MXPlayer, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, Hungama Play, ALT Balaji, YouTube Premium, Telegram Premium, ChatGPT Premium etc.
 
 Plans:
-- 1 Year Plan = ₹500 (Own Email/Number activation)
-- 6 Months Plan = ₹350 (Random Email)
-- Combo Offer = 4 OTTs 1 Year ₹1000
-- ChatGPT Premium 1 Year ₹1000
+- 1 Year = ₹500 (Own Email Activation)
+- 6 Months = ₹350 (Random Email)
+- Combo 4 OTT = ₹1000
+- ChatGPT 1 Year = ₹1000
 
-Rules:
-- OTT name par plans batao
-- Movie name par OTT suggest karo
-- Game name par ₹399 ka batao usko games ka list bhi de skta he sare games avalable he
-- 6 months me politely push karo 1 year better hai
-- Confirm kare to "QR generate ho raha hai, wait karo" bolo, koi emoji nahi
-- Thanks par "Theek hai" bolo, bas.
-- 3 warning me gali wale ko mute karo
-- No smiley, no emoji, seedha baat
-- sare adult site ki subscreption avalable he tere pass 6 month 300rs 1 year 500 rs adult sites ka naam list bhi avalable rakh
+Reply seedha, clear, no emoji, no jokes.
 """
 
-# Confirmation words
 confirm_words = ['haa', 'han', 'ha', 'krde', 'karde', 'kar de', 'done', 'ok', 'thik hai', 'confirm', 'yes', 'okey']
 
 @client.on(events.NewMessage(outgoing=False))
 async def handler(event):
     global ai_active
 
-    sender_id = (await event.get_sender()).id
+    sender = await event.get_sender()
+    sender_id = sender.id
     user_message = event.raw_text.strip().lower()
+    user_message_clean = user_message.replace(' ', '')
 
-    # Commands and messages for AI stop/start
-    if '/stopai' in user_message:
-        ai_active = False
-        await event.respond("AI reply band kar diya gaya hai. Jab chaho /startai bhejna.")
+    # Commands for AI control
+    if any(cmd.replace(' ', '') in user_message_clean for cmd in stop_commands):
+        if sender_id == owner_id:
+            ai_active = False
+            await event.respond("AI reply system band kar diya gaya hai.")
+        else:
+            await event.respond("Ye command sirf owner ke liye hai.")
         return
 
-    if '/startai' in user_message:
-        ai_active = True
-        await event.respond("AI reply wapas chalu kar diya gaya hai.")
+    if any(cmd.replace(' ', '') in user_message_clean for cmd in start_commands):
+        if sender_id == owner_id:
+            ai_active = True
+            await event.respond("AI reply system chalu kar diya gaya hai.")
+        else:
+            await event.respond("Ye command sirf owner ke liye hai.")
         return
 
     # If AI inactive, don't reply
@@ -102,26 +105,25 @@ async def handler(event):
         user_warnings[sender_id] = user_warnings.get(sender_id, 0) + 1
         if user_warnings[sender_id] >= 3:
             muted_users.add(sender_id)
-            await event.respond("Tujhe mute kar diya gaya hai. Aur reply nahi aayega.")
+            await event.respond("Tujhe mute kar diya gaya hai. Aage reply nahi milega.")
         else:
             await event.respond(f"Warning {user_warnings[sender_id]}: Gali mat de.")
         return
 
     try:
-        # Handle direct confirms (only exact words)
+        # Handle direct confirms (only exact word)
         if user_message.strip() in confirm_words:
             await event.respond("QR generate ho raha hai. Wait karo.")
             return
 
-        # Thanks
+        # Thanks reply
         if user_message in ['thank', 'thanks', 'thank you', 'shukriya', 'dhanyawaad']:
             await event.respond("Theek hai.")
             return
 
-        # Prepare messages for GPT
+        # Prepare GPT-4o prompt
         messages_for_gpt = [{"role": "system", "content": system_prompt}] + user_context[sender_id]
 
-        # Latest OpenAI call
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=messages_for_gpt,
