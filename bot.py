@@ -1,5 +1,6 @@
 import asyncio
 import random
+import os
 from telethon import TelegramClient, events, functions, types
 import openai
 
@@ -8,14 +9,14 @@ api_id = 29366476
 api_hash = '183e1501a9aea045d8d30a341718ce2f'
 session_name = 'userbot'
 
-# OpenAI API Key
-openai.api_key = "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"
+# OpenAI initialization (latest way)
+client = openai.OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
-
-client = TelegramClient(session_name, api_id, api_hash)
-
+# Memory context for each user
 user_context = {}
-ai_active = True  # initially AI active hai
+ai_active = True  # AI initially active
 
 # Typing simulation
 async def send_typing(event):
@@ -25,7 +26,7 @@ async def send_typing(event):
     ))
     await asyncio.sleep(random.uniform(1.0, 2.0))
 
-# System prompt for ChatGPT-4o
+# System Prompt for ChatGPT-4o
 system_prompt = """
 Tum ek smart aur friendly OTT subscription seller ho India me.
 Tum sabhi major OTT platforms ka subscription sell karte ho:
@@ -100,16 +101,17 @@ async def handler(event):
             await event.respond("Welcome bhai 😄 Always ready to help 🔥")
             return
 
-        # Sending memory + system prompt to GPT
+        # Prepare messages for GPT
         messages_for_gpt = [{"role": "system", "content": system_prompt}] + user_context[sender_id]
 
-        response = openai.ChatCompletion.create(
+        # Updated way of calling OpenAI API (latest style)
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages_for_gpt,
             temperature=0.7
         )
 
-        bot_reply = response['choices'][0]['message']['content']
+        bot_reply = response.choices[0].message.content
 
         user_context[sender_id].append({"role": "assistant", "content": bot_reply})
 
