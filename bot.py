@@ -34,33 +34,28 @@ bad_words = ["bc", "bkl", "mc", "madarchod", "bhenchod", "chutiya", "lode", "lod
 
 # System Prompt for ChatGPT-4o
 system_prompt = """
-Tum ek smart aur friendly OTT subscription seller ho India me.
-Tum sabhi major OTT platforms ka subscription sell karte ho:
+Tum ek professional aur blunt OTT subscription seller ho. Seedha jawaab doge, jyada funny nahi banoge. 
+No emoji, no extra style. Straight Hindi-English short reply.
 
-Netflix, Amazon Prime Video, Disney+ Hotstar, SonyLIV, Zee5, Voot, ALT Balaji, MX Player, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, SunNxt, Hungama Play, ShemarooMe, Lionsgate Play, ManoramaMAX, DocuBay, Epic On, Chaupal, Planet Marathi, Klikk, Addatimes, NammaFlix, Tarang Plus, Aha, TVF Play, Vi Movies & TV, YouTube Premium, Telegram Premium, ChatGPT Subscription bhi bech rahe ho.
+Tum sab OTT platforms ka subscription bechte ho:
+
+Netflix, Prime Video, Disney+ Hotstar, SonyLIV, Zee5, MXPlayer, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, Hungama Play, ALT Balaji, YouTube Premium, Telegram Premium, ChatGPT Premium etc.
 
 Plans:
-- 1 Year Plan = ₹500 (Own Email/Number activation, Premium Plan, Max Screen Support, 1 Year Guarantee)
-- 6 Months Plan = ₹350 (Random Email Activation, OTP login, same features but random email)
-- Combo Offer = Any 4 OTTs 1 Year Plan = ₹1000 (Own Email/Number Activation, Max Screens support, Premium Plans)
-- ChatGPT Premium 1 Year Plan = ₹1000
-
-Movie handling:
-- Agar user kisi movie ka naam le jaise "Animal", "Dunki", "Pathaan", to batana ki yeh movie kis OTT pe available hai
-- Fir friendly bolna ki "OTT buy karlo bhai, full HD dekh paoge ❤️"
-PC Games:
-- Agar user koi game ka naam le (e.g., GTA V, COD, Valorant), bolo ₹399 me milega ✅ Original price bhi batana aur Streaming pe available batana.
+- 1 Year Plan = ₹500 (Own Email/Number activation)
+- 6 Months Plan = ₹350 (Random Email)
+- Combo Offer = 4 OTTs 1 Year ₹1000
+- ChatGPT Premium 1 Year ₹1000
 
 Rules:
-- Jab user OTT ka naam le to plan aur price smartly suggest karo
-- Jab 6 month bole to politely encourage karo ki 1 year better hai
-- Jab combo ya 4 ott bole to combo offer smartly suggest karo
-- Jab confirm kare (haa, krde, ok) to "QR generate ho raha hai bhai, wait karo 📲" bolo
-- Jab thank you bole to friendly short welcome bolo
-- Hinglish me short (2-3 line) dosti bhare reply do
-- Jab koi gali de to 3 warning ke baad mute kar dena aur reply ignore karna
-- Owner agar /stopai bole to bot band karo aur /startai pe wapas chalu karo
-- Full human funny comedy style reply dena, robotic mat lagna
+- OTT name par plans batao
+- Movie name par OTT suggest karo
+- Game name par ₹399 ka batao
+- 6 months me politely push karo 1 year better hai
+- Confirm kare to "QR generate ho raha hai, wait karo" bolo, koi emoji nahi
+- Thanks par "Theek hai" bolo, bas.
+- 3 warning me gali wale ko mute karo
+- No smiley, no emoji, seedha baat
 """
 
 # Confirmation words
@@ -73,15 +68,15 @@ async def handler(event):
     sender_id = (await event.get_sender()).id
     user_message = event.raw_text.strip().lower()
 
-    # Commands: /stopai /startai
-    if user_message == '/stopai':
+    # Commands and messages for AI stop/start
+    if '/stopai' in user_message:
         ai_active = False
-        await event.respond("✅ AI reply system stopped. Ab me chup rahunga jab tak /startai nahi aata 😄")
+        await event.respond("AI reply band kar diya gaya hai. Jab chaho /startai bhejna.")
         return
 
-    if user_message == '/startai':
+    if '/startai' in user_message:
         ai_active = True
-        await event.respond("✅ AI reply system started. Ab me wapas reply karunga 😄")
+        await event.respond("AI reply wapas chalu kar diya gaya hai.")
         return
 
     # If AI inactive, don't reply
@@ -106,20 +101,20 @@ async def handler(event):
         user_warnings[sender_id] = user_warnings.get(sender_id, 0) + 1
         if user_warnings[sender_id] >= 3:
             muted_users.add(sender_id)
-            await event.respond("⚠️ Bhai 3 warning ke baad tujhe mute kar diya gaya hai 🚫")
+            await event.respond("Tujhe mute kar diya gaya hai. Aur reply nahi aayega.")
         else:
-            await event.respond(f"⚠️ Warning {user_warnings[sender_id]}: Gali mat de bhai 🙏")
+            await event.respond(f"Warning {user_warnings[sender_id]}: Gali mat de.")
         return
 
     try:
         # Handle direct confirms (only exact words)
         if user_message.strip() in confirm_words:
-            await event.respond("Sahi decision bhai ✅ QR generate ho raha hai 📲 Wait karna thoda 😎")
+            await event.respond("QR generate ho raha hai. Wait karo.")
             return
 
         # Thanks
         if user_message in ['thank', 'thanks', 'thank you', 'shukriya', 'dhanyawaad']:
-            await event.respond("Welcome bhai 😄 Hamesha ready hoon madad ke liye!")
+            await event.respond("Theek hai.")
             return
 
         # Prepare messages for GPT
@@ -129,7 +124,7 @@ async def handler(event):
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=messages_for_gpt,
-            temperature=0.7
+            temperature=0.5
         )
 
         bot_reply = response.choices[0].message.content
@@ -139,7 +134,7 @@ async def handler(event):
         await event.respond(bot_reply)
 
     except Exception as e:
-        await event.respond("Bhai thoda error aagaya 😔 Try later.")
+        await event.respond("Error aa gaya. Baad me try karna.")
         print(f"Error: {e}")
 
 client.start()
