@@ -17,6 +17,8 @@ openai_client = openai.OpenAI(
 )
 
 user_context = {}
+user_warnings = {}
+muted_users = set()
 ai_active = True  # AI initially active
 
 # Typing simulation
@@ -25,23 +27,29 @@ async def send_typing(event):
         peer=event.chat_id,
         action=types.SendMessageTypingAction()
     ))
-    await asyncio.sleep(random.uniform(1.0, 2.0))
+    await asyncio.sleep(random.uniform(0.8, 1.5))
+
+# Gali list
+bad_words = ["bc", "bkl", "mc", "madarchod", "bhenchod", "chutiya", "lode", "loda", "gaand", "gaandfat", "gandu"]
 
 # System Prompt for ChatGPT-4o
 system_prompt = """
 Tum ek smart aur friendly OTT subscription seller ho India me.
 Tum sabhi major OTT platforms ka subscription sell karte ho:
 
-Netflix, Amazon Prime Video, Disney+ Hotstar, SonyLIV, Zee5, Voot, ALT Balaji, MX Player, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, SunNxt, Hungama Play, ShemarooMe, Lionsgate Play, ManoramaMAX, DocuBay, Epic On, Chaupal, Planet Marathi, Klikk, Addatimes, NammaFlix, Tarang Plus, Aha, TVF Play, Vi Movies & TV.
+Netflix, Amazon Prime Video, Disney+ Hotstar, SonyLIV, Zee5, Voot, ALT Balaji, MX Player, Ullu, Hoichoi, Eros Now, JioCinema, Discovery+, SunNxt, Hungama Play, ShemarooMe, Lionsgate Play, ManoramaMAX, DocuBay, Epic On, Chaupal, Planet Marathi, Klikk, Addatimes, NammaFlix, Tarang Plus, Aha, TVF Play, Vi Movies & TV, YouTube Premium, Telegram Premium, ChatGPT Subscription bhi bech rahe ho.
 
 Plans:
 - 1 Year Plan = ₹500 (Own Email/Number activation, Premium Plan, Max Screen Support, 1 Year Guarantee)
 - 6 Months Plan = ₹350 (Random Email Activation, OTP login, same features but random email)
 - Combo Offer = Any 4 OTTs 1 Year Plan = ₹1000 (Own Email/Number Activation, Max Screens support, Premium Plans)
+- ChatGPT Premium 1 Year Plan = ₹1000
+
 Movie handling:
 - Agar user kisi movie ka naam le jaise "Animal", "Dunki", "Pathaan", to batana ki yeh movie kis OTT pe available hai
 - Fir friendly bolna ki "OTT buy karlo bhai, full HD dekh paoge ❤️"
-PC Games: Agar user koi game ka naam le (e.g., GTA V, COD, Valorant), bolo ₹399 me milega us game ka original price b bataega streeem price ✅ Buy karoge?
+PC Games:
+- Agar user koi game ka naam le (e.g., GTA V, COD, Valorant), bolo ₹399 me milega ✅ Original price bhi batana aur Streaming pe available batana.
 
 Rules:
 - Jab user OTT ka naam le to plan aur price smartly suggest karo
@@ -50,14 +58,12 @@ Rules:
 - Jab confirm kare (haa, krde, ok) to "QR generate ho raha hai bhai, wait karo 📲" bolo
 - Jab thank you bole to friendly short welcome bolo
 - Hinglish me short (2-3 line) dosti bhare reply do
-- Recent conversation ka flow samajh ke baat karo
-- No robotic boring reply, full human friend feel rakhna
-- youtube bhi ott list me add kr de telegram primium bhi add krde chat gpt b seling ke liye he 1 year 1000 rs
-- comedy me replay karega
-- koi user agar gali de toh 3 worning ke baad mute kerde or usko ignor krega usko replay nai karega
-- owner agar stop ai bolega toh ai reply band ho jaega wo chat ke liye agar start ai kiya toh fir start hoga
+- Jab koi gali de to 3 warning ke baad mute kar dena aur reply ignore karna
+- Owner agar /stopai bole to bot band karo aur /startai pe wapas chalu karo
+- Full human funny comedy style reply dena, robotic mat lagna
 """
 
+# Confirmation words
 confirm_words = ['haa', 'han', 'ha', 'krde', 'karde', 'kar de', 'done', 'ok', 'thik hai', 'confirm', 'yes', 'okey']
 
 @client.on(events.NewMessage(outgoing=False))
@@ -70,7 +76,7 @@ async def handler(event):
     # Commands: /stopai /startai
     if user_message == '/stopai':
         ai_active = False
-        await event.respond("✅ AI reply system stopped. Ab me chup rahunga jab tak wapas /startai nahi aata 😄")
+        await event.respond("✅ AI reply system stopped. Ab me chup rahunga jab tak /startai nahi aata 😄")
         return
 
     if user_message == '/startai':
@@ -82,6 +88,10 @@ async def handler(event):
     if not ai_active:
         return
 
+    # Muted user check
+    if sender_id in muted_users:
+        return
+
     await send_typing(event)
 
     if sender_id not in user_context:
@@ -91,15 +101,25 @@ async def handler(event):
     if len(user_context[sender_id]) > 10:
         user_context[sender_id] = user_context[sender_id][-10:]
 
+    # Gali Detection
+    if any(bad_word in user_message for bad_word in bad_words):
+        user_warnings[sender_id] = user_warnings.get(sender_id, 0) + 1
+        if user_warnings[sender_id] >= 3:
+            muted_users.add(sender_id)
+            await event.respond("⚠️ Bhai 3 warning ke baad tujhe mute kar diya gaya hai 🚫")
+        else:
+            await event.respond(f"⚠️ Warning {user_warnings[sender_id]}: Gali mat de bhai 🙏")
+        return
+
     try:
-        # Handle direct confirms (haa, krde etc)
-        if any(word in user_message for word in confirm_words):
+        # Handle direct confirms (only exact words)
+        if user_message.strip() in confirm_words:
             await event.respond("Sahi decision bhai ✅ QR generate ho raha hai 📲 Wait karna thoda 😎")
             return
 
         # Thanks
-        if any(word in user_message for word in ['thank', 'thanks', 'thank you', 'shukriya']):
-            await event.respond("Welcome bhai 😄 Always ready to help 🔥")
+        if user_message in ['thank', 'thanks', 'thank you', 'shukriya', 'dhanyawaad']:
+            await event.respond("Welcome bhai 😄 Hamesha ready hoon madad ke liye!")
             return
 
         # Prepare messages for GPT
