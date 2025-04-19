@@ -61,7 +61,6 @@ Rules:
 - Jab koi gali de to 3 warning ke baad mute kar dena aur reply ignore karna
 - Owner agar /stopai bole to bot band karo aur /startai pe wapas chalu karo
 - Full human funny comedy style reply dena, robotic mat lagna
-- tum user se ghuma fira ke baat mat kro point to point baat kro
 """
 
 # Confirmation words
