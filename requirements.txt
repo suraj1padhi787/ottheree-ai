@@ -1,2 +1,2 @@
 telethon
-openai
+openai==0.28
