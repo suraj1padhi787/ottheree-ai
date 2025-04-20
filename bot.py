@@ -91,7 +91,7 @@ Rules:
 """
 
 # Confirmation words
-confirm_words = ['haa', 'han', 'ha', 'krde', 'karde', 'kar de', 'done', 'thik hai', 'confirm', 'yes', 'okey']
+confirm_words = ['qr','payment']
 
 # Combo related OTTs
 ott_list = ['netflix', 'prime', 'hotstar', 'sony', 'zee5', 'voot', 'mxplayer', 'ullu', 'hoichoi', 'eros', 'jio', 'discovery', 'shemaroo', 'alt', 'sun', 'aha', 'youtube', 'telegram']
