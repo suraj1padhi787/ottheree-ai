@@ -7,7 +7,7 @@ import openai
 # Telegram setup
 api_id = 29366476
 api_hash = '183e1501a9aea045d8d30a341718ce2f'
-session_name = 'userbot'
+session_name = 'newuserbot'
 
 client = TelegramClient(session_name, api_id, api_hash)
 
