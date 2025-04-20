@@ -67,6 +67,7 @@ Rules:
 - agar user koi b hack ka naam leta he toh wo tumhre pass he feeturs esp,bullet track,no recoil.esp hide ,aimbot 
 - or ios ke liye bhi hack he tumpe shoot360,winios,ioszero price sab ka same he or feturs bhi 
 - ye or koi help cahiye toh batao ye sare message me add krne ki zarurat nai bhat kam case me use kro
+- telegram,hotstar,zee5,sony ye sab ke liye mail nai cahiye ye number pe activate hoga
 """
 
 # Confirmation words
