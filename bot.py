@@ -24,19 +24,19 @@ ai_active = True  # AI initially active
 # Owner ID
 owner_id = 7063105762
 
-# Typing simulation based on text length
+# Typing simulation
 async def send_typing(event, text_length=20):
     await event.client(functions.messages.SetTypingRequest(
         peer=event.chat_id,
         action=types.SendMessageTypingAction()
     ))
-    typing_time = min(5, max(1.5, text_length / 15))  # Max 5 seconds, min 1.5 seconds
+    typing_time = min(5, max(1.5, text_length / 15))
     await asyncio.sleep(random.uniform(1.0, typing_time))
 
 # Gali list
 bad_words = ["bc", "bkl", "mc", "madarchod", "bhenchod", "chutiya", "lode", "loda", "gaand", "gaandfat", "gandu"]
 
-# System Prompt
+# New System Prompt
 system_prompt = """
 Tum ek professional aur blunt OTT, Game aur Adult subscription seller ho.
 
@@ -70,12 +70,12 @@ Movie handling:
 - Fir friendly bolna ki "OTT buy karlo bhai, full HD dekh paoge ❤️"
 PC Games:
 - Agar user koi game ka naam le (e.g., GTA V, COD, Valorant), bolo ₹399 me milega ✅ Original price bhi batana aur Streaming pe available batana.
+
 Agar user 'haa', 'ok', 'krde', 'confirm', 'yes', 'done' jese shabd bole:
 - To context dekh kar decide karo kya reply dena hai.
 - Agar lagta hai user payment confirm kar raha hai to "QR code generate ho raha hai bhai ❤️" type ka human funny reply do.
 - Agar lagta hai normal casual baat hai to bas friendly dosti bhara normal reply do.
 - Hardcoded kabhi kuch na bolo, context samajh ke smart reply do.
-
 
 Rules:
 - Jab user OTT ka naam le to plan aur price smartly suggest karo
@@ -87,14 +87,7 @@ Rules:
 - Jab koi gali de to 3 warning ke baad mute kar dena aur reply ignore karna
 - Owner agar /stopai bole to bot band karo aur /startai pe wapas chalu karo
 - Full human funny comedy style reply dena, robotic mat lagna
-
 """
-
-# Confirmation words
-confirm_words = ['qr','payment']
-
-# Combo related OTTs
-ott_list = ['netflix', 'prime', 'hotstar', 'sony', 'zee5', 'voot', 'mxplayer', 'ullu', 'hoichoi', 'eros', 'jio', 'discovery', 'shemaroo', 'alt', 'sun', 'aha', 'youtube', 'telegram']
 
 @client.on(events.NewMessage)
 async def handler(event):
@@ -103,13 +96,12 @@ async def handler(event):
     sender = await event.get_sender()
     sender_id = sender.id
     user_message = event.raw_text.strip().lower()
-    user_message_clean = user_message.replace(' ', '')
 
-    # AI control by Owner
+    # AI control commands
     stop_commands = ['/stopai', 'stop ai', 'band kar de ai', 'ai band kar', 'close ai']
     start_commands = ['/startai', 'start ai', 'ai start kar', 'chalu kar ai', 'open ai']
 
-    if any(cmd.replace(' ', '') in user_message_clean for cmd in stop_commands):
+    if any(cmd.replace(' ', '') in user_message.replace(' ', '') for cmd in stop_commands):
         if sender_id == owner_id:
             ai_active = False
             await event.respond("AI system band kar diya gaya hai.")
@@ -117,7 +109,7 @@ async def handler(event):
             await event.respond("Ye command sirf owner ke liye hai.")
         return
 
-    if any(cmd.replace(' ', '') in user_message_clean for cmd in start_commands):
+    if any(cmd.replace(' ', '') in user_message.replace(' ', '') for cmd in start_commands):
         if sender_id == owner_id:
             ai_active = True
             await event.respond("AI system chalu kar diya gaya hai.")
@@ -125,15 +117,12 @@ async def handler(event):
             await event.respond("Ye command sirf owner ke liye hai.")
         return
 
-    # If AI inactive, don't reply
     if not ai_active:
         return
 
-    # Muted users no reply
     if sender_id in muted_users:
         return
 
-    # Gali detection
     if any(bad_word in user_message for bad_word in bad_words):
         user_warnings[sender_id] = user_warnings.get(sender_id, 0) + 1
         if user_warnings[sender_id] >= 3:
@@ -143,7 +132,6 @@ async def handler(event):
             await event.respond(f"Warning {user_warnings[sender_id]}: Gali mat do.")
         return
 
-    # Start typing simulation based on user input length
     await send_typing(event, len(user_message))
 
     if sender_id not in user_context:
@@ -154,23 +142,6 @@ async def handler(event):
         user_context[sender_id] = user_context[sender_id][-10:]
 
     try:
-        # Handle smart confirms
-        if user_message.strip() in confirm_words:
-            await event.respond("QR code generate ho raha hai. Thoda wait karo.")
-            return
-
-        # Thanks
-        if user_message in ['thank', 'thanks', 'thank you', 'shukriya', 'dhanyawaad']:
-            await event.respond("Theek hai.")
-            return
-
-        # Auto Combo Suggestion
-        ott_matches = [ott for ott in ott_list if ott in user_message]
-        if len(ott_matches) >= 2:
-            await event.respond("Bhai combo offer le lo 4 OTT 1 saath ₹1000 me. 1 year validity ke saath.")
-            return
-
-        # Prepare GPT-4o prompt
         messages_for_gpt = [{"role": "system", "content": system_prompt}] + user_context[sender_id]
 
         response = openai_client.chat.completions.create(
@@ -183,9 +154,7 @@ async def handler(event):
 
         user_context[sender_id].append({"role": "assistant", "content": bot_reply})
 
-        # Typing simulation for bot reply
         await send_typing(event, len(bot_reply))
-
         await event.respond(bot_reply)
 
     except Exception as e:
