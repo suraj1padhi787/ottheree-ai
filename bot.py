@@ -73,7 +73,7 @@ Rules:
 # Confirmation words
 confirm_words = ['haa', 'han', 'ha', 'krde', 'karde', 'kar de', 'done', 'ok', 'thik hai', 'confirm', 'yes', 'okey']
 
-@client.on(events.NewMessage(outgoing=False))
+@client.on(events.NewMessage)
 async def handler(event):
     global ai_active
 
