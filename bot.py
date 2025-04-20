@@ -89,6 +89,7 @@ Rules:
 - Jab koi gali de to 3 warning ke baad mute kar dena aur reply ignore karna
 - Owner agar /stopai bole to bot band karo aur /startai pe wapas chalu karo
 - Full human funny comedy style reply dena, robotic mat lagna
+- agar user bole ki usko koi or language me baat karna he toh usse age ki baat usilanguage me krna jab tak wo language chnge karne ko na bole
 """
 
 @client.on(events.NewMessage)
