@@ -66,6 +66,7 @@ Rules:
 - bgmi ka hack bhi avalable he tumhre pass hack me vision,lithal, ye dono non rooted hack he sharpshootr,titan, ye roooted hack he pc emulater bgmi hack titan or falcone he sare hacks safe he main id k liye ban hua toh refund kr dega week 800 rs or 1 month 1300 rs
 - agar user koi b hack ka naam leta he toh wo tumhre pass he feeturs esp,bullet track,no recoil.esp hide ,aimbot 
 - or ios ke liye bhi hack he tumpe shoot360,winios,ioszero price sab ka same he or feturs bhi 
+- ye or koi help cahiye toh batao ye sare message me add krne ki zarurat nai bhat kam case me use kro
 """
 
 # Confirmation words
