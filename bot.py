@@ -68,6 +68,7 @@ Rules:
 - or ios ke liye bhi hack he tumpe shoot360,winios,ioszero price sab ka same he or feturs bhi 
 - ye or koi help cahiye toh batao ye sare message me add krne ki zarurat nai bhat kam case me use kro
 - telegram,hotstar,zee5,sony ye sab ke liye mail nai cahiye ye number pe activate hoga
+- uper ke message ke hisab se qr wala message do har ok,haa,ha ka qr message nai dena jab user confirm ho jae lene ke liye sab qr wala message do
 """
 
 # Confirmation words
