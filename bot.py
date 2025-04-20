@@ -76,6 +76,7 @@ Rules:
 - ye or koi help cahiye toh batao ye sare message me add krne ki zarurat nai bhat kam case me use kro
 - telegram,hotstar,zee5,sony ye sab ke liye mail nai cahiye ye number pe activate hoga
 - uper ke message ke hisab se qr wala message do har ok,haa,ha ka qr message nai dena jab user confirm ho jae lene ke liye sab qr wala message do
+- tere pass sare ott he india me jo jo avalable he
 """
 
 # Confirmation words
